@@ -47,9 +47,10 @@ final class TimerViewController: UIViewController {
             return
         }
         
-        // не получилось реализовать сравнение именно по Date т.к. не понял как исключить милисекунды
-        // по этому сравниваю значение строк
-        if (firstDateLabel.text == secondDateLabel.text) || (firstDate > secondDate) {
+        let normalizedFirstDate = normalizeDate(timerDate)
+        let normalizedSecondDate = normalizeDate(secondDate)
+        
+        if normalizedFirstDate >= normalizedSecondDate {
             timerTextLabel.text = "Неверные даты"
             return
         }
@@ -75,19 +76,38 @@ final class TimerViewController: UIViewController {
         // не получилось реализовать сравнение именно по Date т.к. не понял как исключить милисекунды
         // по этому сравниваю значение строк
         // пробовал через Calendar и abs(timerDate.timeIntervalSince(secondDate)) < 1, но безрезультатно
-        if timerTextLabel.text == secondDateLabel.text {
+//        if timerTextLabel.text == secondDateLabel.text {
+//            timer.invalidate()
+//            timerTextLabel.text = "всё!"
+//            return
+//        }
+        
+        // второе решение
+        let normalizedTimerDate = normalizeDate(timerDate)
+        let normalizedSecondDate = normalizeDate(secondDate)
+        
+        if normalizedTimerDate >= normalizedSecondDate {
             timer.invalidate()
             timerTextLabel.text = "всё!"
             return
+        } else {
+            timerTextLabel.text = dateToString(timerDate)
+            timerDate = Calendar.current.date(byAdding: .hour, value: 1, to: timerDate)!
         }
-
-        timerTextLabel.text = dateToString(timerDate)
-        timerDate = Calendar.current.date(byAdding: .hour, value: 1, to: timerDate)!
     }
     
     func dateToString(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "dd MMMM yyyy, EEE HH:mm"
         return formatter.string(from: date)
+    }
+    
+    func normalizeDate(_ date: Date) -> Date {
+        var components = Calendar.current.dateComponents(
+            [.year, .month, .day, .hour, .minute, .second],
+            from: date
+        )
+        components.nanosecond = 0
+        return Calendar.current.date(from: components)!
     }
 }
